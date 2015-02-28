@@ -5,6 +5,6 @@ class ApplicationController < ActionController::Base
 
 
   def error msg, code
-    render json: {"error": msg, "code": code}, status: code
+    render json: {error: msg, code: code}, status: code
   end
 end
