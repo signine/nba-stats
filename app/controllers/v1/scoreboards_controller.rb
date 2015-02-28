@@ -21,7 +21,7 @@ module V1
     def get_scoreboard date
       key = "scoreboard-#{date.strftime('%m/%d/%Y')}"
   
-      Rails.cache.fetch(key, expires_in: 1.hour) do
+      Rails.cache.fetch(key, expires_in: 1.day) do
         nba = NBA.new
         nba.get_scoreboard date
       end
