@@ -35,8 +35,11 @@ class NBA
 
     body = response.body
     body = body.slice(3..(body.length - 3))
-
     data = JSON.parse body
+
+    current_date = data['sports_content']['dates']['today_date']
+    return get_scoreboard(Time.new.to_date)  unless today? current_date
+
     games = parse_current_scores data
 
     games
