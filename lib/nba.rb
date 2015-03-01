@@ -1,3 +1,4 @@
+require 'nokogiri'
 require 'date'
 require 'json'
 require 'httparty'
@@ -5,12 +6,18 @@ require 'httparty'
 class NBA
   include HTTParty
 
-  base_uri "http://stats.nba.com/stats/"
-
   BOXSCORE_BASE = "http://www.nba.com/games"
   BOXSCORE_END = "gameinfo.html"
   DEFAULT_OPTS = {"LeagueID" => "00", "DayOffset" => 0}
-  ENDPOINTS = {scoreboard: '/scoreboard'}
+  ENDPOINTS = {
+                scoreboard: "http://stats.nba.com/stats/scoreboard",
+                current_scores: "http://data.nba.com/jsonp/10s/json/cms/noseason/scores/gametracker.json?callback=CB&callback=CB"
+              }
+
+  def initialize
+    @current_games = []
+    @current_date = Time.now.to_date
+  end
 
   def get_scoreboard date
     raise InvalidArgument unless date || date.kind_of?(Date)
@@ -21,14 +28,51 @@ class NBA
     raise "Error code returned: #{response.code}" unless valid? response
 
     data = JSON.parse response.body
-    games = parse_games data
+    games = parse_scoreboard data
+
+    games
+  end
+
+  def get_current_scores
+    response = self.class.get(ENDPOINTS[:current_scores])
+
+    raise "Error code returned: #{response.code}" unless valid? response
+
+    body = response.body
+    body = body.slice(3..(body.length - 3))
+
+    data = JSON.parse body
+    games = parse_current_scores data
 
     games
   end
 
   private
 
-  def parse_games data
+  def parse_current_scores data
+    games = []
+    current_date = data['sports_content']['dates']['today_date']
+    current_games = data['sports_content']['game'].select { |g| g['date'] == current_date }
+    current_games.each do |g|
+      game = {}
+      game[:id] = g['id']
+      game[:status] = g['period_time']['period_status']
+      game[:time] = g['period_time']['game_clock']
+      game[:boxscore_link] = make_boxscore_link(g['game_url']) 
+
+      game[:team_1] = g['visitor']['team_key'] 
+      game[:team_1_score] = g['visitor']['score']
+
+      game[:team_2] = g['home']['team_key'] 
+      game[:team_2_score] = g['home']['score']
+
+      games << game
+    end
+
+    games
+  end
+
+  def parse_scoreboard data
     games = []
 
     data['resultSets'][0]['rowSet'].each do |g|
@@ -62,5 +106,9 @@ class NBA
 
   def valid? resp
     resp.code == 200
+  end
+
+  def today? date
+    Time.now.to_date == date
   end
 end

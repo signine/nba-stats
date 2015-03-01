@@ -16,9 +16,23 @@ module V1
       render :json => {scoreboard: games}
     end
 
+    def current_scores
+      render :json => {current_scores: get_current_scores}
+    end
+
+
     private
+
+    def get_current_scores
+      Rails.cache.fetch("current_scores", expires_in: 15.seconds) do
+        nba = NBA.new
+        nba.get_current_scores
+      end
+    end
   
     def get_scoreboard date
+      return get_current_scores if today? date
+
       key = "scoreboard-#{date.strftime('%m/%d/%Y')}"
   
       Rails.cache.fetch(key, expires_in: 1.day) do
@@ -35,5 +49,10 @@ module V1
   
       dates
     end
+
+    def today? date
+      Time.now.to_date == date
+    end
+
   end
 end
