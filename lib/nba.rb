@@ -14,11 +14,6 @@ class NBA
                 current_scores: "http://data.nba.com/jsonp/10s/json/cms/noseason/scores/gametracker.json?callback=CB&callback=CB"
               }
 
-  def initialize
-    @current_games = []
-    @current_date = Time.now.to_date
-  end
-
   def get_scoreboard date
     raise InvalidArgument unless date || date.kind_of?(Date)
 
