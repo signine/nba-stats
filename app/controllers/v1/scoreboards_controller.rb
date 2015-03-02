@@ -50,9 +50,12 @@ module V1
       dates
     end
 
-    def today? date
-      Time.now.to_date == date
+    def now
+      DateTime.now.in_time_zone
     end
 
+    def today? date
+      now == date
+    end
   end
 end

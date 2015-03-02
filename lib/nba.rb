@@ -38,7 +38,7 @@ class NBA
     data = JSON.parse body
 
     current_date = Date.strptime(data['sports_content']['dates']['today_date'], '%Y%m%d')
-    return get_scoreboard(Time.new.to_date)  unless today? current_date
+    return get_scoreboard(now)  unless today? current_date
 
     games = parse_current_scores data
 
@@ -106,7 +106,11 @@ class NBA
     resp.code == 200
   end
 
+  def now
+    DateTime.now.in_time_zone
+  end
+
   def today? date
-    Time.now.to_date == date
+    now == date
   end
 end
