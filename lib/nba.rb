@@ -107,7 +107,7 @@ class NBA
   end
 
   def now
-    DateTime.now.in_time_zone
+    DateTime.now.in_time_zone.to_date
   end
 
   def today? date
